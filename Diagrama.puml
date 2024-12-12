@@ -1,0 +1,46 @@
+@startuml
+abstract class observer.Subject {
+- List<Observer> observers
++ void attach(Observer)
++ void detach(Observer)
+# void notifyObservers(JSONObject)
+}
+
+
+class api.WeatherAPIClient {
+- String apiKey
++ JSONObject getWeatherData(String)
+}
+
+
+class Main {
+- {static} Map<String,JTextArea> cityTextAreas
+- {static} WeatherAPIStation station
+- {static} ScheduledExecutorService scheduler
+- {static} Map<String,StringBuilder> cityHistory
++ {static} void main(String[])
+}
+
+
+class observer.WeatherAPIStation {
+- WeatherAPIClient apiClient
+- JSONObject weatherData
++ void fetchWeather(String)
+}
+
+
+interface observer.Observer {
+~ void update(JSONObject)
+}
+
+class observer.DesktopApp {
+- String name
++ void update(JSONObject)
+}
+
+
+
+
+observer.Subject <|-- observer.WeatherAPIStation
+observer.Observer <|.. observer.DesktopApp
+@enduml
