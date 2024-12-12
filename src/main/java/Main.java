@@ -17,7 +17,7 @@ public class Main {
         // Configurar la ventana principal
         JFrame frame = new JFrame("Monitor de Clima");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
+        frame.setSize(800, 600);
 
         // Panel para agregar ciudades
         JPanel controlPanel = new JPanel();
@@ -30,9 +30,9 @@ public class Main {
 
         // Área de visualización
         JPanel displayPanel = new JPanel();
-        displayPanel.setLayout(new GridLayout(0, 1));
+        displayPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10)); // Cambiar a disposición de cuadrícula con celdas independientes // Cambiar a disposición horizontal estricta con una sola fila // Cambiar a disposición en cuadrícula con espacios uniformes; // Cambiar a disposición horizontal
 
-        JScrollPane scrollPane = new JScrollPane(displayPanel);
+        JScrollPane scrollPane = new JScrollPane(displayPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
         frame.setLayout(new BorderLayout());
         frame.add(controlPanel, BorderLayout.NORTH);
@@ -42,36 +42,46 @@ public class Main {
         addCityButton.addActionListener(e -> {
             String city = cityInput.getText().trim();
             if (!city.isEmpty() && !cityTextAreas.containsKey(city)) {
-                JTextArea cityArea = new JTextArea(10, 30);
-                cityArea.setEditable(false);
-                cityArea.setBorder(BorderFactory.createTitledBorder(city));
-                displayPanel.add(cityArea);
-                cityTextAreas.put(city, cityArea);
-                cityHistory.put(city, new StringBuilder());
+                try {
+                    // Verificar si la ciudad es válida y tiene datos antes de crear el cuadro
+                    station.fetchWeather(city);
 
-                station.attach(weatherData -> SwingUtilities.invokeLater(() -> {
-                    if (weatherData.getString("name").equalsIgnoreCase(city)) {
-                        double temp = weatherData.getJSONObject("main").getDouble("temp");
-                        String description = weatherData.getJSONArray("weather").getJSONObject(0).getString("description");
-                        int humidity = weatherData.getJSONObject("main").getInt("humidity");
+                    // Crear el cuadro solo si la ciudad es válida y tiene datos
+                    JTextArea cityArea = new JTextArea(5, 15); // Tamaño ajustado para diseño horizontal
+                    cityArea.setEditable(false);
+                    cityArea.setBorder(BorderFactory.createTitledBorder(city));
+                    displayPanel.add(cityArea);
+                    cityTextAreas.put(city, cityArea);
+                    cityHistory.put(city, new StringBuilder());
 
-                        String newData = String.format("Temperatura: %.2f°C\nDescripción: %s\nHumedad: %d%%\n\n", temp, description, humidity);
-                        cityHistory.get(city).insert(0, newData);
-                        cityArea.setText(cityHistory.get(city).toString());
-                    }
-                }));
+                    station.attach(weatherData -> SwingUtilities.invokeLater(() -> {
+                        if (weatherData.getString("name").equalsIgnoreCase(city)) {
+                            double temp = weatherData.getJSONObject("main").getDouble("temp");
+                            String description = weatherData.getJSONArray("weather").getJSONObject(0).getString("description");
+                            int humidity = weatherData.getJSONObject("main").getInt("humidity");
 
-                scheduler.scheduleAtFixedRate(() -> {
-                    try {
-                        station.fetchWeather(city);
-                    } catch (Exception ex) {
-                        SwingUtilities.invokeLater(() -> cityArea.setText("Error al actualizar: " + ex.getMessage()));
-                    }
-                }, 0, 10, TimeUnit.SECONDS);
+                            String newData = String.format("Temperatura: %.2f°C\nDescripción: %s\nHumedad: %d%%\n\n", temp, description, humidity);
+                            cityHistory.get(city).insert(0, newData);
+                            cityArea.setText(cityHistory.get(city).toString());
+                        }
+                    }));
 
-                frame.revalidate();
-                frame.repaint();
-                cityInput.setText("");
+                    scheduler.scheduleAtFixedRate(() -> {
+                        try {
+                            station.fetchWeather(city);
+                        } catch (Exception ex) {
+                            SwingUtilities.invokeLater(() -> cityArea.setText("Error: " + ex.getMessage()));
+                        }
+                    }, 0, 10, TimeUnit.SECONDS);
+
+                    frame.revalidate();
+                    frame.repaint();
+                    cityInput.setText("");
+
+                } catch (Exception ex) {
+                    // Mostrar un mensaje de error si la ciudad no se encuentra o no tiene datos
+                    JOptionPane.showMessageDialog(frame, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
             } else if (cityTextAreas.containsKey(city)) {
                 JOptionPane.showMessageDialog(frame, "La ciudad ya está siendo monitoreada.", "Error", JOptionPane.ERROR_MESSAGE);
             }
