@@ -1,0 +1,40 @@
+@startuml
+interface Observer {
+    +update(weatherData: JSONObject)
+}
+
+abstract class Subject {
+    -observers: List<Observer>
+    +attach(observer: Observer)
+    +detach(observer: Observer)
+    +notifyObservers(weatherData: JSONObject)
+}
+
+class WeatherAPIStation extends Subject {
+    -apiClient: WeatherAPIClient
+    -weatherData: JSONObject
+    +fetchWeather(city: String)
+}
+
+class WeatherAPIClient {
+    -apiKey: String
+    +getWeatherData(city: String): JSONObject
+}
+
+class CityWeatherPanel implements Observer {
+    -cityName: String
+    +update(weatherData: JSONObject)
+}
+
+class Main {
+    -station: WeatherAPIStation
+    -scheduler: ScheduledExecutorService
+    -cityTextAreas: Map<String, JTextArea>
+    +main(args: String[])
+}
+
+
+WeatherAPIStation --> WeatherAPIClient
+Main --> WeatherAPIStation
+Main --> CityWeatherPanel
+@enduml
