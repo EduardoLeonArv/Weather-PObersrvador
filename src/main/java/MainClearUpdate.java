@@ -7,15 +7,14 @@ import java.awt.event.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class Main {
+public class MainClearUpdate {
     private static final Map<String, JTextArea> cityTextAreas = new HashMap<>();
     private static final WeatherAPIStation station = new WeatherAPIStation(new WeatherAPIClient("73effaf7600879ce57e1a2adf0a23017"));
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
-    private static final Map<String, StringBuilder> cityHistory = new HashMap<>();
 
     public static void main(String[] args) {
         // Configurar la ventana principal
-        JFrame frame = new JFrame("Monitor de Clima");
+        JFrame frame = new JFrame("Monitor de Clima (Clear Update)");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
 
@@ -30,7 +29,7 @@ public class Main {
 
         // Área de visualización
         JPanel displayPanel = new JPanel();
-        displayPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10)); // Cambiar a disposición de cuadrícula con celdas independientes // Cambiar a disposición horizontal estricta con una sola fila // Cambiar a disposición en cuadrícula con espacios uniformes; // Cambiar a disposición horizontal
+        displayPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
 
         JScrollPane scrollPane = new JScrollPane(displayPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
@@ -47,12 +46,11 @@ public class Main {
                     station.fetchWeather(city);
 
                     // Crear el cuadro solo si la ciudad es válida y tiene datos
-                    JTextArea cityArea = new JTextArea(5, 15); // Tamaño ajustado para diseño horizontal
+                    JTextArea cityArea = new JTextArea(5, 15);
                     cityArea.setEditable(false);
                     cityArea.setBorder(BorderFactory.createTitledBorder(city));
                     displayPanel.add(cityArea);
                     cityTextAreas.put(city, cityArea);
-                    cityHistory.put(city, new StringBuilder());
 
                     station.attach(weatherData -> SwingUtilities.invokeLater(() -> {
                         if (weatherData.getString("name").equalsIgnoreCase(city)) {
@@ -60,9 +58,9 @@ public class Main {
                             String description = weatherData.getJSONArray("weather").getJSONObject(0).getString("description");
                             int humidity = weatherData.getJSONObject("main").getInt("humidity");
 
-                            String newData = String.format("Temperatura: %.2f°C\nDescripción: %s\nHumedad: %d%%\n\n", temp, description, humidity);
-                            cityHistory.get(city).insert(0, newData);
-                            cityArea.setText(cityHistory.get(city).toString());
+                            // Actualizar el contenido del área de texto limpiando el contenido previo
+                            String newData = String.format("Temperatura: %.2f°C\nDescripción: %s\nHumedad: %d%%\n", temp, description, humidity);
+                            cityArea.setText(newData);
                         }
                     }));
 
@@ -72,7 +70,7 @@ public class Main {
                         } catch (Exception ex) {
                             SwingUtilities.invokeLater(() -> cityArea.setText("Error: " + ex.getMessage()));
                         }
-                    }, 0, 5, TimeUnit.SECONDS);
+                    }, 0, 10, TimeUnit.SECONDS);
 
                     frame.revalidate();
                     frame.repaint();
@@ -100,7 +98,7 @@ public class Main {
                     SwingUtilities.invokeLater(() -> cityArea.setText("Error al actualizar: " + ex.getMessage()));
                 }
             }
-        }, 0, 8, TimeUnit.SECONDS);
+        }, 0, 10, TimeUnit.SECONDS);
 
         // Agregar acción para cerrar limpiamente
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
