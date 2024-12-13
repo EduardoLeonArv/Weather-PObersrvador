@@ -72,7 +72,7 @@ public class Main {
                         } catch (Exception ex) {
                             SwingUtilities.invokeLater(() -> cityArea.setText("Error: " + ex.getMessage()));
                         }
-                    }, 0, 5, TimeUnit.SECONDS);
+                    }, 0, 10, TimeUnit.SECONDS);
 
                     frame.revalidate();
                     frame.repaint();
