@@ -16,7 +16,8 @@ public class WeatherAPIStation extends Subject {
             JSONObject newWeatherData = apiClient.getWeatherData(city);
 
             // Validar que los datos contengan información relevante
-            if (!newWeatherData.has("name") || !newWeatherData.has("main") || !newWeatherData.has("weather")) {
+            if (!newWeatherData.has("name") || !newWeatherData.has("main")
+                    || !newWeatherData.has("weather")) {
                 throw new Exception("Datos incompletos o no disponibles para la ciudad: " + city);
             }
 
