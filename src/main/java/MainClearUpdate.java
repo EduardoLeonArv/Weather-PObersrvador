@@ -14,7 +14,7 @@ public class MainClearUpdate {
 
     public static void main(String[] args) {
         // Configurar la ventana principal
-        JFrame frame = new JFrame("Monitor de Clima (Clear Update)");
+        JFrame frame = new JFrame("Monitor de Clima (Con Hora)");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
 
@@ -58,8 +58,9 @@ public class MainClearUpdate {
                             String description = weatherData.getJSONArray("weather").getJSONObject(0).getString("description");
                             int humidity = weatherData.getJSONObject("main").getInt("humidity");
 
-                            // Actualizar el contenido del área de texto limpiando el contenido previo
-                            String newData = String.format("Temperatura: %.2f°C\nDescripción: %s\nHumedad: %d%%\n", temp, description, humidity);
+                            // Agregar hora al contenido actualizado
+                            String timestamp = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+                            String newData = String.format("Hora: %s\nTemperatura: %.2f°C\nDescripción: %s\nHumedad: %d%%\n", timestamp, temp, description, humidity);
                             cityArea.setText(newData);
                         }
                     }));
